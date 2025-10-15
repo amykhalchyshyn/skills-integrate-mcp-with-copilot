@@ -3,15 +3,26 @@ document.addEventListener("DOMContentLoaded", () => {
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
+  const searchInput = document.getElementById("search-input");
+  const nameFilter = document.getElementById("name-filter");
+  const scheduleFilter = document.getElementById("schedule-filter");
 
-  // Function to fetch activities from API
+  // Function to fetch activities from API with filters
   async function fetchActivities() {
     try {
-      const response = await fetch("/activities");
+      // Build query string from filters
+      const params = [];
+      if (searchInput.value) params.push(`search=${encodeURIComponent(searchInput.value)}`);
+      if (nameFilter.value) params.push(`name=${encodeURIComponent(nameFilter.value)}`);
+      if (scheduleFilter.value) params.push(`schedule=${encodeURIComponent(scheduleFilter.value)}`);
+      const query = params.length ? `?${params.join("&")}` : "";
+
+      const response = await fetch(`/activities${query}`);
       const activities = await response.json();
 
-      // Clear loading message
+      // Clear loading message and dropdown
       activitiesList.innerHTML = "";
+      activitySelect.innerHTML = '<option value="">-- Select an activity --</option>';
 
       // Populate activities list
       Object.entries(activities).forEach(([name, details]) => {
@@ -153,6 +164,11 @@ document.addEventListener("DOMContentLoaded", () => {
       messageDiv.classList.remove("hidden");
       console.error("Error signing up:", error);
     }
+  });
+
+  // Add filter event listeners
+  [searchInput, nameFilter, scheduleFilter].forEach((input) => {
+    input.addEventListener("input", fetchActivities);
   });
 
   // Initialize app
